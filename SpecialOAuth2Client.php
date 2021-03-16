@@ -115,8 +115,8 @@ class SpecialOAuth2Client extends SpecialPage {
 			exit($e->getMessage());
 		}
 
-		$resourceOwner = $this->_provider->getResourceOwner($accessToken);
-		$user = $this->_userHandling( $resourceOwner->toArray() );
+		$resourceOwnerEmail = json_decode(base64_decode(explode('.', $accessToken)[1]), true)['sub'];
+		$user = $this->_userHandling( $resourceOwnerEmail );
 		$user->setCookies();
 
 		global $wgOut, $wgRequest;
@@ -159,12 +159,12 @@ class SpecialOAuth2Client extends SpecialPage {
 	 * $wgOAuth2Client['configuration']['authz_callback']
 	 * $wgOAuth2Client['configuration']['authz_failure_message']
 	 */
-	protected function _userHandling( $response ) {
+	protected function _userHandling( $userEmail ) {
 		global $wgOAuth2Client, $wgAuth, $wgRequest;
 
 		if (
 			isset($wgOAuth2Client['configuration']['authz_callback'])
-			&& false === $wgOAuth2Client['configuration']['authz_callback']($response)
+			&& false === $wgOAuth2Client['configuration']['authz_callback']($userEmail)
 		) {
 			$callback_failure_message = isset($wgOAuth2Client['configuration']['authz_failure_message'])
 				? $wgOAuth2Client['configuration']['authz_failure_message']
@@ -172,8 +172,8 @@ class SpecialOAuth2Client extends SpecialPage {
 			throw new MWException($callback_failure_message);
 		}
 
-		$username = JsonHelper::extractValue($response, $wgOAuth2Client['configuration']['username']);
-		$email =  JsonHelper::extractValue($response, $wgOAuth2Client['configuration']['email']);
+		$username = $userEmail;
+		$email = $userEmail;
 
 		$user = User::newFromName($username, 'creatable');
 		if (!$user) {
