@@ -175,7 +175,7 @@ class SpecialOAuth2Client extends SpecialPage {
 		$username = $userEmail;
 		$email = $userEmail;
 
-		$user = User::newFromName($username, 'creatable');
+		$user = User::newFromName($username);
 		if (!$user) {
 			throw new MWException('Could not create user with username:' . $username);
 			die();
